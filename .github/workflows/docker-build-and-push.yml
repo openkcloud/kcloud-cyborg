@@ -6,6 +6,21 @@ on:
   workflow_dispatch:
 
 jobs:
+  cleanup-ghcr:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - name: Delete old GHCR images
+        uses: actions/delete-package-versions@v5
+        with:
+          owner: ${{ github.repository_owner }}
+          package-name: ${{ github.event.repository.name }}
+          package-type: container
+          min-versions-to-keep: 4
+          delete-only-untagged-versions: true
+          token: ${{ secrets.CR_PAT_RWD }}
+          
   build-and-push:
     if: github.repository_owner == 'openkcloud'
     
@@ -42,7 +57,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
-          password: ${{ secrets.CR_PAT }}
+          password: ${{ secrets.CR_PAT_RWD }}
 
       - name: Check if Base image exists in GHCR
         id: check-base-image
